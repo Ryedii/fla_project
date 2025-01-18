@@ -6,9 +6,9 @@
 #include "parse.h"
 
 const std::string help_str = "usage:   fla [-h|--help] <pda> <input>"
-                             "         fla [-v|--verbose] [-h|--help] <tm> <input>\n";
+        "         fla [-v|--verbose] [-h|--help] <tm> <input>\n";
 
-std::string get_file_extension(std::string& filename) {
+std::string get_file_extension(std::string &filename) {
     size_t last_dot_pos = filename.find_last_of('.');
     if (last_dot_pos == std::string::npos)
         return "";
@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    std::fstream am_file(am_path);
+    std::ifstream am_file(am_path);
     if (!am_file.is_open()) {
         std::cerr << "File " << am_path << " not be open." << std::endl;
         exit(-1);
@@ -53,13 +53,30 @@ int main(int argc, char *argv[]) {
         exit(-1);
     }
 
+    bool accept = false;
     if (am_type == 1) {
         PDA pda;
         int err = 0;
         err = read(am_file, pda);
+        if (err != 0)
+            exit(-1);
+
+        PDA_runner runner(&pda);
+        runner.set_input(input);
+
+        while (err == 1) {
+            err = runner.step();
+            if (err == -1)
+                exit(-1);
+            if (err == 0)
+                accept = false;
+            if (err == 1 && is_verbose)
+                runner.print();
+            if (err == 2)
+                accept = runner.if_final();
+        }
     }
     if (am_type == 2) {
-
     }
     tm = parser(argv[ind]);
     if (!tm.has_value())exit(-1);
