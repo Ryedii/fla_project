@@ -3,7 +3,7 @@ project(fla_project)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(fla_project main.cpp
+add_executable(fla main.cpp
         automata.cpp
         automata.h
         parse.cpp

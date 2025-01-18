@@ -5,7 +5,7 @@
 #include "automata.h"
 #include "parse.h"
 
-const std::string help_str = "usage:   fla [-h|--help] <pda> <input>"
+const std::string help_str = "usage:   fla [-h|--help] <pda> <input>\n"
         "         fla [-v|--verbose] [-h|--help] <tm> <input>\n";
 
 std::string get_file_extension(std::string &filename) {
@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
     for (int indx = 1; indx < argc; ++indx) {
         if (strcmp(argv[indx], "-v") == 0 || strcmp(argv[indx], "--verbose") == 0)
             is_verbose = true;
-        else if (strcmp(argv[indx], "-v") == 0 || strcmp(argv[indx], "--help") == 0)
+        else if (strcmp(argv[indx], "-h") == 0 || strcmp(argv[indx], "--help") == 0)
             is_help = true;
         else if (am_path.empty())
             am_path = argv[indx];
@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
             break;
     }
 
-    if (1 + is_verbose + is_help + 2 != argc || am_path.empty() || input.empty() || is_help) {
+    if (3 + is_verbose + is_help != argc || am_path.empty() || input.empty() || is_help) {
         std::cerr << help_str << std::endl;
         return 0;
     }
@@ -53,17 +53,28 @@ int main(int argc, char *argv[]) {
         exit(-1);
     }
 
-    bool accept = false;
+    std::cerr << "debug@main: #1 am_type = " << am_type << std::endl;
+
     if (am_type == 1) {
         PDA pda;
         int err = 0;
         err = read(am_file, pda);
+        std::cerr << "debug@main: #2 read err = " << err << std::endl;
+        if (err != 0) {
+            std::cerr << "syntax error" << std::endl;
+            exit(1);
+        }
+
+
+        PDA_runner runner(&pda);
+        err = runner.set_input(input);
         if (err != 0)
             exit(-1);
 
-        PDA_runner runner(&pda);
-        runner.set_input(input);
+        std::cerr << "debug@main: #3 set_input done" << std::endl;
 
+        bool accept = false;
+        err = 1;
         while (err == 1) {
             err = runner.step();
             if (err == -1)
@@ -74,40 +85,14 @@ int main(int argc, char *argv[]) {
                 runner.print();
             if (err == 2)
                 accept = runner.if_final();
+            std::cerr << "debug@main: #4 step" << std::endl;
         }
+        std::cerr << (accept ? "true" : "false") << std::endl;
+        std::cout << (accept ? "true" : "false") << std::endl;
     }
     if (am_type == 2) {
     }
-    tm = parser(argv[ind]);
-    if (!tm.has_value())exit(-1);
-    tm->init();
-    if (is_verbose) std::cout << "Input: " << argv[ind + 1] << std::endl;
-    if (uint32_t code = tm->loadInput(argv[ind + 1]); code > 0
-    ) {
-        if (is_verbose) {
-            std::cerr << "==================== ERR ====================\n";
-            std::cerr << "error: Symbol \"" << argv[ind + 1][code - 1] <<
-                    "\" in input is not defined in the set of input symbols\n";
-            std::cerr << "Input: " << argv[ind + 1] << std::endl;
-            std::cerr << std::string(7 + code - 1, ' ') << "^\n";
-            std::cout << "==================== END ====================\n";
-        } else std::cerr << "illegal input string\n";
-        return -1;
-    }
-    else
-    if (is_verbose) {
-        std::cout << "==================== RUN ====================\n";
-        std::cout << tm->ID();
-        std::cout << "---------------------------------------------\n";
-        while (tm->move()) {
-            std::cout << tm->ID();
-            std::cout << "---------------------------------------------\n";
-        }
-        std::cout << tm->result(true);
-        std::cout << "==================== END ====================\n";
-    } else {
-        tm->run();
-        std::cout << tm->result(false) << std::endl;
-    }
+
+
     return 0;
 }

@@ -1,6 +1,8 @@
 #include "automata.h"
 
 #include <cstring>
+#include <iostream>
+#include <ostream>
 
 
 int Automata::set_states(const std::vector<std::string> &s) {
@@ -59,8 +61,7 @@ int Automata::find_input(const char &c) {
     return -1;
 }
 
-
-int PDA::set_stack_alphabet(const std::vector<char> &s) {
+int PDA::set_stack_alphabet(const std::vector<std::string> &s) {
     if (!stack_alphabet.empty())
         return -1;
     stack_alphabet.push_back('_');
@@ -69,10 +70,15 @@ int PDA::set_stack_alphabet(const std::vector<char> &s) {
     return 0;
 }
 
+int PDA::add_stack_alphabet(const char &c) {
+    stack_alphabet.push_back(c);
+    return 0;
+}
 
 int PDA::set_start_symbol(const std::string &s) {
     if (start_symbol != -1)
         return -1;
+    // add_stack_alphabet(s[0]);
     start_symbol = find_symbol(s[0]);
     if (start_symbol == -1)
         return -1;
@@ -82,30 +88,29 @@ int PDA::set_start_symbol(const std::string &s) {
 int PDA::add_rule(const std::vector<std::string> &s) {
     if (s.size() != 5)
         return -1;
-    int state_indx = find_state(s[0]);
-    int input_indx = find_input(s[1][0]);
-    int symbol_indx = find_symbol(s[2][0]);
-    int to_state_indx = find_state(s[3]);
-    if (state_indx == -1 || input_indx == -1 || symbol_indx == -1 || to_state_indx == -1)
+    int state = find_state(s[0]);
+    int input = find_input(s[1][0]);
+    int symbol = find_symbol(s[2][0]);
+    int to_state = find_state(s[3]);
+    if (state == -1 || input == -1 || symbol == -1 || to_state == -1)
         return -1;
-    std::vector<int> to_symbols_indx;
+    std::cerr << "debug@add_rule " << s[4] << std::endl;
+    std::vector<int> to_symbols;
     for (const auto &c: s[4]) {
-        to_symbols_indx.push_back(find_symbol(c));
-        if (to_symbols_indx[to_symbols_indx.size() - 1] == -1)
+        to_symbols.push_back(find_symbol(c));
+        if (to_symbols[to_symbols.size() - 1] == -1)
             return -1;
     }
-#define indx state_indx][input_indx][symbol_indx
-    to_state[indx] = to_state_indx;
-    to_symbols[indx] = to_symbols_indx;
+    std::cerr << "debug@add_rule" << std::endl;
+    rules.push_back(Rule(state, input, symbol, to_state, to_symbols));
+    return 0;
 }
-
 
 void PDA::clear() {
     stack_alphabet.clear();
     start_symbol = -1;
-    memset(to_state, -1, sizeof(to_state));
+    rules.clear();
 }
-
 
 int PDA::find_symbol(const char &c) {
     for (int i = 0; i < stack_alphabet.size(); ++i)
@@ -117,7 +122,6 @@ int PDA::find_symbol(const char &c) {
 int Runner::if_final() {
     return automata->states[state].is_final;
 }
-
 
 int PDA_runner::set_input(const std::string &s) {
     input = s;
@@ -131,30 +135,26 @@ int PDA_runner::set_input(const std::string &s) {
 int PDA_runner::step() {
     if (input_indx == input.size())
         return 2;
-    int state_indx = state;
-    int input_indx = input[input_indx];
+    int input_ = input[input_indx++];
     if (stack.empty())
         return -1;
-    int symbol_indx = stack.top();
-#define indx state_indx][input_indx][symbol_indx
-    int to_state_indx = pda->to_state[indx];
-    if (to_state_indx == -1)
-        return 0;
-    state = to_state_indx;
-    stack.pop();
-    for (const auto &c: pda->to_symbols[indx])
-        stack.push(c);
-    ++input_indx;
-    return 1;
+    int symbol = stack.top();
+    for (const auto &rule: pda->rules) {
+        if (state == rule.state && input[input_indx] == rule.input && symbol == rule.symbol) {
+            state = rule.to_state;
+            stack.pop();
+            for (const auto &c: rule.to_symbols)
+                stack.push(c);
+            ++input_indx;
+            return 1;
+        }
+    }
+    return 0;
 }
 
 void PDA_runner::print() {
-
 }
 
-void PDA_runner::if_final() {
-    return pda.stat
-}
 
 
 

@@ -8,18 +8,26 @@
 
 std::vector<std::string> scan(std::string line, char c = 0, char l = 0, char r = 0) {
     std::vector<std::string> words;
-    int m = 0, n;
     if (l != 0) {
         int n = line.find(r);
         if (n == std::string::npos)
             return words;
-        m = line.find(l, 0);
-    } else
-        n = line.size();
-    for (int i = m, j; i < n; i = j) {
-        j = line.find(c, i + 1);
-        if (j > i)
-            words.push_back(line.substr(i + 1, j));
+        int m = line.find(l, 0);
+        for (int i = m, j; i < n; i = j) {
+            j = line.find(c, i + 1);
+            if (j == std::string::npos)
+                j = n;
+            if (j - i - 1 > 0)
+                words.push_back(line.substr(i + 1, j - i - 1));
+        }
+    } else {
+        line.insert(line.begin(), ' ');
+        line.push_back(' ');
+        for (int i = 0, j; i < line.size(); i = j) {
+            j = line.find(' ', i + 1);
+            if (j - i - 1 > 0)
+                words.push_back(line.substr(i + 1, j - i - 1));
+        }
     }
     return words;
 }
@@ -28,6 +36,7 @@ int read(std::ifstream &file, PDA &p) {
     std::string line;
     p.clear();
     while (getline(file, line)) {
+        std::cerr << "debug@read: line = | " << line << std::endl;
         if (line.empty() || line[0] == ';')
             continue;
         if (line[0] == '#') {
@@ -43,14 +52,19 @@ int read(std::ifstream &file, PDA &p) {
                 int err = p.set_input_alphabet(words);
                 if (err != 0) return err;
             }
+            if (line[1] == 'G') {
+                std::vector<std::string> words = scan(line, ',', '{', '}');
+                int err = p.set_stack_alphabet(words);
+                if (err != 0) return err;
+            }
             if (line[1] == 'q') {
                 std::vector<std::string> words = scan(line);
-                int err = p.set_start_state(words[0]);
+                int err = p.set_start_state(words[2]);
                 if (err != 0) return err;
             }
             if (line[1] == 'z') {
                 std::vector<std::string> words = scan(line);
-                int err = p.set_start_symbol(words[0]);
+                int err = p.set_start_symbol(words[2]);
                 if (err != 0) return err;
             }
             if (line[1] == 'F') {
@@ -64,5 +78,6 @@ int read(std::ifstream &file, PDA &p) {
             if (err != 0) return err;
         }
     }
+    return 0;
 }
 

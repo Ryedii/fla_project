@@ -25,8 +25,8 @@ public:
     }
 };
 
-
 class Automata {
+protected:
     std::vector<State> states;
     int start_state;
     std::vector<char> input_alphabet;
@@ -55,15 +55,24 @@ class PDA : public Automata {
 private:
     std::vector<char> stack_alphabet;
     int start_symbol;
-    std::vector<std::pair<int, int>> transitions[C][C][C];
-    int to_state[C][C][C];
-    std::vector<int> to_symbols[C][C][C];
+
+    struct Rule {
+        int state, input, symbol;
+        int to_state;
+        std::vector<int> to_symbols;
+
+        Rule(int state, int input, int symbol, int to_state, std::vector<int> &to_symbols)
+            : state(state), input(input), symbol(symbol), to_state(to_state), to_symbols(std::move(to_symbols)) {
+        }
+    };
+
+    std::vector<Rule> rules;
 
 public:
-    PDA() {clear();}
+    PDA() { clear(); }
 
-    int set_stack_alphabet(const std::vector<char> &s);
-
+    int set_stack_alphabet(const std::vector<std::string> &s);
+    int add_stack_alphabet(const char& c);
     int set_start_symbol(const std::string &s);
 
     int add_rule(const std::vector<std::string> &s);
@@ -79,13 +88,16 @@ class TM : public Automata {
 };
 
 class Runner {
+protected:
     Automata *automata;
     std::string input;
     int input_indx;
     int state;
 
 public:
-    Runner() : input_indx(0), state(-1) {}
+    Runner() : input_indx(0), state(-1) {
+    }
+
     int if_final();
 };
 
@@ -95,9 +107,13 @@ private:
     std::stack<int> stack;
 
 public:
-    PDA_runner(PDA *pda) : pda(pda) {}
+    PDA_runner(PDA *pda) : pda(pda) {
+    }
+
     int set_input(const std::string &s);
+
     int step();
+
     void print();
 };
 
