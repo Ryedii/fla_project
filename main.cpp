@@ -67,27 +67,39 @@ int main(int argc, char *argv[]) {
             std::cerr << "Input: " << input << std::endl;
         PDA_runner runner(&pda);
         err = runner.set_input(input);
-        if (err != 0) {
-            std::cerr << "illegal input" << std::endl;
+        if (err != -1) {
+            if (is_verbose) {
+                std::cerr << "==================== ERR ====================" << std::endl;
+                std::cerr << "error: '" << input[err] << "' was not declared in the set of input symbols" << std::endl;
+                std::cerr << "Input: " << input << std::endl;
+                input.assign(input.size(), ' ');
+                input[err] = '^';
+                std::cerr << "       " << input << std::endl;
+                std::cerr << "==================== END ====================" << std::endl;
+            } else
+                std::cerr << "illegal input" << std::endl;
             exit(1);
-        }
+        } else if (is_verbose)
+            std::cerr << "==================== RUN ====================" << std::endl;
 
         bool accept = false;
         err = 1;
+        if (is_verbose)
+            runner.print();
         while (err == 1) {
             err = runner.step();
-            if (err == -1)
-                exit(-1);
             if (err == 0)
                 accept = false;
-            if (err == 1 && is_verbose)
-                runner.print();
             if (err == 2)
                 accept = runner.if_final();
-            // std::cerr << "debug@main: #4 step err = " << err << std::endl;
-            // std::cerr << "debug@main: #4 step err = " << err << " if_final = " << runner.if_final() << std::endl;
+            if (is_verbose)
+                runner.print();
         }
-        std::cout << (accept ? "true" : "false") << std::endl;
+        if (is_verbose) {
+            std::cout << "Result: " << (accept ? "true" : "false") << std::endl;
+            std::cerr << "==================== END ====================" << std::endl;
+        } else
+            std::cout << (accept ? "true" : "false") << std::endl;
     }
 
     if (am_type == 2) {
@@ -123,13 +135,16 @@ int main(int argc, char *argv[]) {
             runner.print();
         while (err == 1) {
             err = runner.step();
-            // std::cerr << "debug@main: #4 step err = " << err << std::endl;
-            if (err == 1 && is_verbose)
-                runner.print();
             if (err == 2)
                 break;
+            if (is_verbose)
+                runner.print();
         }
-        std::cout << runner.output() << std::endl;
+        if (is_verbose) {
+            std::cout << "Result: " << runner.output() << std::endl;
+            std::cerr << "==================== END ====================" << std::endl;
+        } else
+            std::cout << runner.output() << std::endl;
     }
 
 

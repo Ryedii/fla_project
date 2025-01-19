@@ -36,7 +36,6 @@ int read(std::ifstream &file, PDA &p) {
     std::string line;
     p.clear();
     while (getline(file, line)) {
-        // std::cerr << "debug@read: line = | " << line << std::endl;
         int pos_semicolon = line.find(';');
         if (pos_semicolon != std::string::npos)
             line = line.substr(0, pos_semicolon);

@@ -67,6 +67,7 @@ public:
     int add_rule(const std::vector<std::string> &s);
     void clear();
     int find_symbol(const char &c);
+    char get_ch(int c);
     friend class PDA_runner;
 };
 
