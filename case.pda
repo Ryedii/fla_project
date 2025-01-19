@@ -1,0 +1,15 @@
+; bracket matching
+; Input: a string oa ('s and )'s
+
+#Q = {q0,q1,q2}
+#S = {(,)}
+#G = {x,z}
+#q0 = q0
+#z0 = z
+#F = {q0}
+
+q0 ( z q1 xz
+q0 ) z q2 z
+q1 ( x q1 xx
+q1 ) x q1 _
+q1 _ z q0 _

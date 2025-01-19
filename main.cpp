@@ -66,8 +66,10 @@ int main(int argc, char *argv[]) {
 
         PDA_runner runner(&pda);
         err = runner.set_input(input);
-        if (err != 0) exit(-1);
-        // std::cerr << "debug@main: #3 set_input done" << std::endl;
+        if (err != 0) {
+            std::cerr << "illegal input" << std::endl;
+            exit(1);
+        }
 
         bool accept = false;
         err = 1;
@@ -98,7 +100,10 @@ int main(int argc, char *argv[]) {
 
         TM_runner runner(&tm);
         err = runner.set_input(input);
-        if (err != 0) exit(-1);
+        if (err != 0) {
+            std::cerr << "illegal input" << std::endl;
+            exit(1);
+        }
 
         err = 1;
         while (err == 1) {
