@@ -97,6 +97,7 @@ public:
     void clear();
     int find_symbol(const char &c);
     std::vector<int> find_symbols(const std::string &s);
+    char get_ch(int c);
     friend class TM_runner;
 };
 
@@ -106,10 +107,10 @@ protected:
     std::vector<int> input;
     int input_indx;
     int state;
+    int steps;
 
 public:
-    Runner() : input_indx(0), state(-1) {}
-
+    Runner() : input_indx(0), state(-1), steps(0) {}
     bool if_final();
 };
 
@@ -143,6 +144,7 @@ public:
     int step();
     void print();
     std::string output();
+    void simp(int i, int t);
 };
 
 

@@ -58,12 +58,13 @@ int main(int argc, char *argv[]) {
         PDA pda;
         int err = 0;
         err = read(am_file, pda);
-        // std::cerr << "debug@main: #2 read err = " << err << std::endl;
         if (err != 0) {
             std::cerr << "syntax error" << std::endl;
             exit(1);
         }
 
+        if (is_verbose)
+            std::cerr << "Input: " << input << std::endl;
         PDA_runner runner(&pda);
         err = runner.set_input(input);
         if (err != 0) {
@@ -98,14 +99,28 @@ int main(int argc, char *argv[]) {
             exit(1);
         }
 
+        if (is_verbose)
+            std::cerr << "Input: " << input << std::endl;
         TM_runner runner(&tm);
         err = runner.set_input(input);
-        if (err != 0) {
-            std::cerr << "illegal input" << std::endl;
+        if (err != -1) {
+            if (is_verbose) {
+                std::cerr << "==================== ERR ====================" << std::endl;
+                std::cerr << "error: '" << input[err] << "' was not declared in the set of input symbols" << std::endl;
+                std::cerr << "Input: " << input << std::endl;
+                input.assign(input.size(), ' ');
+                input[err] = '^';
+                std::cerr << "       " << input << std::endl;
+                std::cerr << "==================== END ====================" << std::endl;
+            } else
+                std::cerr << "illegal input" << std::endl;
             exit(1);
-        }
+        } else if (is_verbose)
+            std::cerr << "==================== RUN ====================" << std::endl;
 
         err = 1;
+        if (is_verbose)
+            runner.print();
         while (err == 1) {
             err = runner.step();
             // std::cerr << "debug@main: #4 step err = " << err << std::endl;
