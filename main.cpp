@@ -66,8 +66,7 @@ int main(int argc, char *argv[]) {
 
         PDA_runner runner(&pda);
         err = runner.set_input(input);
-        if (err != 0)
-            exit(-1);
+        if (err != 0) exit(-1);
         // std::cerr << "debug@main: #3 set_input done" << std::endl;
 
         bool accept = false;
@@ -98,7 +97,12 @@ int main(int argc, char *argv[]) {
         }
 
         TM_runner runner(&tm);
-        err = runner.set_tape(input);
+        err = runner.set_input(input);
+        if (err != 0) exit(-1);
+
+        while (err == 1) {
+            err = runner.step();
+        }
     }
 
 

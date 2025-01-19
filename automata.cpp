@@ -118,6 +118,62 @@ int PDA::find_symbol(const char &c) {
     return -1;
 }
 
+int TM::set_tape_alphabet(const std::vector<std::string> &s) {
+    if (!tape_alphabet.empty())
+        return -1;
+    for (const auto &s: s)
+        tape_alphabet.push_back(s[0]);
+    return 0;
+}
+
+int TM::add_rule(const std::vector<std::string> &s) {
+    if (s.size() != 5)
+        return -1;
+    int state = find_state(s[0]);
+    std::vector<int> symbols = find_symbols(s[1]);
+    std::vector<int> to_symbols = find_symbols(s[2]);
+    std::string to_dirs = s[3];
+    int to_state = find_state(s[4]);
+    if (state == -1 || symbols[0] == -1 || to_symbols[0] == -1 || to_state == -1)
+        return -1;
+    rules.push_back(Rule(state, symbols, to_state, to_symbols, to_dirs));
+}
+
+int TM::set_tape_num(const std::string &s) {
+    if (tape_num != 0)
+        return -1;
+    tape_num = std::stoi(s);
+    return 0;
+}
+
+
+void TM::clear() {
+    tape_alphabet.clear();
+    rules.clear();
+}
+
+int TM::find_symbol(const char &c) {
+    if (c == '_') return ULINE_INDX;
+    if (c == '*') return STAR_INDX;
+    for (int i = 0; i < tape_alphabet.size(); ++i)
+        if (tape_alphabet[i] == c)
+            return i;
+    return -1;
+}
+
+std::vector<int> TM::find_symbols(const std::string &s) {
+    std::vector<int> symbols;
+    for (const auto &c: s) {
+        symbols.push_back(find_symbol(c));
+        if (symbols[symbols.size() - 1] == -1) {
+            symbols[0] = -1;
+            return symbols;
+        }
+    }
+    return symbols;
+}
+
+
 int Runner::if_final() {
     // std::cerr << "debug@if_final: " << automata->states[state].name << std::endl;
     return automata->states[state].is_final;
@@ -160,11 +216,8 @@ int PDA_runner::step() {
     //     << " " << (stack.empty() ? '?' : pda->stack_alphabet[stack.top()]) << std::endl;
     if (input_indx == input.size() && if_final())
         return 2;
-    int rule_indx = 0;
     for (const auto &rule: pda->rules) {
-        if (state == rule.state
-            && eq(input[input_indx], rule.input)
-            && eq(stack, rule.symbol)) {
+        if (state == rule.state && eq(input[input_indx], rule.input) && eq(stack, rule.symbol)) {
             state = rule.to_state;
             if (rule.symbol != ULINE_INDX)
                 stack.pop();
@@ -173,15 +226,54 @@ int PDA_runner::step() {
                     stack.push(c);
             if (rule.input != ULINE_INDX)
                 ++input_indx;
-            // std::cerr << "debug@step: using rule " << rule_indx << std::endl;
             return 1;
         }
-        ++rule_indx;
     }
     return 0;
 }
 
-void PDA_runner::print() {
+void PDA_runner::print() {}
+
+int TM_runner::set_input(const std::string &s) {
+    heads.resize(tm->tape_num);
+    tapes.resize(tm->tape_num);
+    for (const auto &c: s) {
+        if (tm->find_input(c) == -1)
+            return -1;
+        tapes[0].push_back(tm->find_symbol(c));
+    }
+    state = tm->start_state;
+    return 0;
+}
+
+bool eq(const std::vector<std::vector<int>> &tapes, const std::vector<int> &heads, const std::vector<int> &symbols) {
+    for (int i = 0; i < tapes.size(); ++i) {
+        if (tapes[i][heads[i]] == STAR_INDX)
+            continue;
+        if (symbols[i] == STAR_INDX)
+            continue;
+        if (tapes[i][heads[i]] != symbols[i])
+            return 0;
+    }
+    return 1;
+}
+
+int TM_runner::step() {
+    for (const auto &rule: tm->rules) {
+        if (state == rule.state && eq(tapes, heads, rule.symbols)) {
+            state = rule.to_state;
+            for (int i = 0; i < tm->tape_num; ++i) {
+                tapes[i][heads[i]] = rule.to_symbols[i];
+                heads[i] += rule.to_dirs[i] == 'l' ? -1 : 1;
+                while (heads[i] < 0)
+                    tapes[i].insert(tapes[i].begin(), ULINE_INDX),
+                    ++heads[i];
+                while (heads[i] >= tapes[i].size())
+                    tapes[i].push_back(ULINE_INDX);
+            }
+        }
+    }
+    return 0;
 }
 
 

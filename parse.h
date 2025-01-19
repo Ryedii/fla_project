@@ -6,5 +6,6 @@
 #include "automata.h"
 
 int read(std::ifstream &file, PDA &p);
+int read(std::ifstream &file, TM &t);
 
 #endif //PARSE_H

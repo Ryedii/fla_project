@@ -81,3 +81,56 @@ int read(std::ifstream &file, PDA &p) {
     return 0;
 }
 
+int read(std::ifstream &file, TM &t) {
+    std::string line;
+    t.clear();
+    while (getline(file, line)) {
+        if (line.empty() || line[0] == ';')
+            continue;
+        if (line[0] == '#') {
+            if (line.size() == 1)
+                return -1;
+            if (line[1] == 'Q') {
+                std::vector<std::string> words = scan(line, ',', '{', '}');
+                int err = t.set_states(words);
+                if (err != 0) return err;
+            }
+            if (line[1] == 'S') {
+                std::vector<std::string> words = scan(line, ',', '{', '}');
+                int err = t.set_input_alphabet(words);
+                if (err != 0) return err;
+            }
+            if (line[1] == 'G') {
+                std::vector<std::string> words = scan(line, ',', '{', '}');
+                int err = t.set_tape_alphabet(words);
+                if (err != 0) return err;
+            }
+            if (line[1] == 'q') {
+                std::vector<std::string> words = scan(line);
+                int err = t.set_start_state(words[2]);
+                if (err != 0) return err;
+            }
+            if (line[1] == 'B') {
+                std::vector<std::string> words = scan(line);
+                if (words[2] != "-") return -1;
+            }
+            if (line[1] == 'F') {
+                std::vector<std::string> words = scan(line, ',', '{', '}');
+                int err = t.set_final_states(words);
+                if (err != 0) return err;
+            }
+            if (line[1] == 'N') {
+                std::vector<std::string> words = scan(line);
+                int err = t.set_tape_num(words[2]);
+                if (err != 0) return err;
+            }
+        } else {
+            std::vector<std::string> words = scan(line);
+            int err = t.add_rule(words);
+            if (err != 0) return err;
+        }
+    }
+    return 0;
+}
+
+
