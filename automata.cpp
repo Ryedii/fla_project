@@ -122,13 +122,15 @@ int TM::set_tape_alphabet(const std::vector<std::string> &s) {
     if (!tape_alphabet.empty())
         return -1;
     for (const auto &s: s)
-        tape_alphabet.push_back(s[0]);
+        if (s[0] != '_')
+            tape_alphabet.push_back(s[0]);
     return 0;
 }
 
 int TM::add_rule(const std::vector<std::string> &s) {
     if (s.size() != 5)
         return -1;
+    // std::cerr << "debug@add_rule" << std::endl;
     int state = find_state(s[0]);
     std::vector<int> symbols = find_symbols(s[1]);
     std::vector<int> to_symbols = find_symbols(s[2]);
@@ -137,6 +139,7 @@ int TM::add_rule(const std::vector<std::string> &s) {
     if (state == -1 || symbols[0] == -1 || to_symbols[0] == -1 || to_state == -1)
         return -1;
     rules.push_back(Rule(state, symbols, to_state, to_symbols, to_dirs));
+    return 0;
 }
 
 int TM::set_tape_num(const std::string &s) {
@@ -145,7 +148,6 @@ int TM::set_tape_num(const std::string &s) {
     tape_num = std::stoi(s);
     return 0;
 }
-
 
 void TM::clear() {
     tape_alphabet.clear();
@@ -174,7 +176,7 @@ std::vector<int> TM::find_symbols(const std::string &s) {
 }
 
 
-int Runner::if_final() {
+bool Runner::if_final() {
     // std::cerr << "debug@if_final: " << automata->states[state].name << std::endl;
     return automata->states[state].is_final;
 }
@@ -235,18 +237,20 @@ int PDA_runner::step() {
 void PDA_runner::print() {}
 
 int TM_runner::set_input(const std::string &s) {
-    heads.resize(tm->tape_num);
+    heads.assign(tm->tape_num, 0);
     tapes.resize(tm->tape_num);
     for (const auto &c: s) {
         if (tm->find_input(c) == -1)
             return -1;
         tapes[0].push_back(tm->find_symbol(c));
     }
+    for (int i = 1; i < tm->tape_num; ++i)
+        tapes[i].push_back(ULINE_INDX);
     state = tm->start_state;
     return 0;
 }
 
-bool eq(const std::vector<std::vector<int>> &tapes, const std::vector<int> &heads, const std::vector<int> &symbols) {
+bool eq(const std::vector<std::vector<int> > &tapes, const std::vector<int> &heads, const std::vector<int> &symbols) {
     for (int i = 0; i < tapes.size(); ++i) {
         if (tapes[i][heads[i]] == STAR_INDX)
             continue;
@@ -264,17 +268,49 @@ int TM_runner::step() {
             state = rule.to_state;
             for (int i = 0; i < tm->tape_num; ++i) {
                 tapes[i][heads[i]] = rule.to_symbols[i];
-                heads[i] += rule.to_dirs[i] == 'l' ? -1 : 1;
+                if (rule.to_dirs[i] == 'l')
+                    --heads[i];
+                if (rule.to_dirs[i] == 'r')
+                    ++heads[i];
                 while (heads[i] < 0)
                     tapes[i].insert(tapes[i].begin(), ULINE_INDX),
-                    ++heads[i];
+                            ++heads[i];
                 while (heads[i] >= tapes[i].size())
                     tapes[i].push_back(ULINE_INDX);
             }
+            return 1;
         }
     }
-    return 0;
+    return 2;
 }
+
+void TM_runner::print() {}
+
+std::string TM_runner::output() {
+    std::string s;
+    s.clear();
+    // std::cerr << "debug@output: ";
+    // for (const int &c: tapes[0])
+    //     std::cerr << c << " ";
+    // std::cerr << std::endl;
+    bool pre = 1;
+    for (const auto &c: tapes[0]) {
+        if (pre && c == ULINE_INDX)
+            continue;
+        pre = 0;
+        if (c == ULINE_INDX)
+            s.append("_");
+        else if (c == STAR_INDX)
+            s.append("*");
+        else
+            s.push_back(tm->tape_alphabet[c]);
+    }
+    while (!s.empty() && s[s.size() - 1] == '_')
+        s.pop_back();
+    return s;
+}
+
+
 
 
 

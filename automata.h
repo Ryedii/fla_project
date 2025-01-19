@@ -110,7 +110,7 @@ protected:
 public:
     Runner() : input_indx(0), state(-1) {}
 
-    int if_final();
+    bool if_final();
 };
 
 class PDA_runner : public Runner {
@@ -142,6 +142,7 @@ public:
     int set_input(const std::string &s);
     int step();
     void print();
+    std::string output();
 };
 
 

@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
             // std::cerr << "debug@main: #4 step err = " << err << std::endl;
             // std::cerr << "debug@main: #4 step err = " << err << " if_final = " << runner.if_final() << std::endl;
         }
-        std::cerr << (accept ? "true" : "false") << std::endl;
+        std::cout << (accept ? "true" : "false") << std::endl;
     }
 
     if (am_type == 2) {
@@ -100,9 +100,16 @@ int main(int argc, char *argv[]) {
         err = runner.set_input(input);
         if (err != 0) exit(-1);
 
+        err = 1;
         while (err == 1) {
             err = runner.step();
+            // std::cerr << "debug@main: #4 step err = " << err << std::endl;
+            if (err == 1 && is_verbose)
+                runner.print();
+            if (err == 2)
+                break;
         }
+        std::cout << runner.output() << std::endl;
     }
 
 

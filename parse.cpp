@@ -37,6 +37,9 @@ int read(std::ifstream &file, PDA &p) {
     p.clear();
     while (getline(file, line)) {
         // std::cerr << "debug@read: line = | " << line << std::endl;
+        int pos_semicolon = line.find(';');
+        if (pos_semicolon != std::string::npos)
+            line = line.substr(0, pos_semicolon);
         if (line.empty() || line[0] == ';')
             continue;
         if (line[0] == '#') {
@@ -85,6 +88,10 @@ int read(std::ifstream &file, TM &t) {
     std::string line;
     t.clear();
     while (getline(file, line)) {
+        // std::cerr << "debug@read: line = | " << line << std::endl;
+        int pos_semicolon = line.find(';');
+        if (pos_semicolon != std::string::npos)
+            line = line.substr(0, pos_semicolon);
         if (line.empty() || line[0] == ';')
             continue;
         if (line[0] == '#') {
@@ -112,7 +119,7 @@ int read(std::ifstream &file, TM &t) {
             }
             if (line[1] == 'B') {
                 std::vector<std::string> words = scan(line);
-                if (words[2] != "-") return -1;
+                if (words[2] != "_") return -1;
             }
             if (line[1] == 'F') {
                 std::vector<std::string> words = scan(line, ',', '{', '}');
