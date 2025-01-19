@@ -6,7 +6,8 @@
 #include <vector>
 #include <map>
 
-const int C = 257;
+const int ULINE_INDX = 257;
+const int STAR_INDX = 258;
 
 class State;
 class Automata;
@@ -72,7 +73,9 @@ public:
     PDA() { clear(); }
 
     int set_stack_alphabet(const std::vector<std::string> &s);
-    int add_stack_alphabet(const char& c);
+
+    int add_stack_alphabet(const char &c);
+
     int set_start_symbol(const std::string &s);
 
     int add_rule(const std::vector<std::string> &s);
@@ -90,7 +93,7 @@ class TM : public Automata {
 class Runner {
 protected:
     Automata *automata;
-    std::string input;
+    std::vector<int> input;
     int input_indx;
     int state;
 
@@ -108,6 +111,7 @@ private:
 
 public:
     PDA_runner(PDA *pda) : pda(pda) {
+        automata = pda;
     }
 
     int set_input(const std::string &s);

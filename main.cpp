@@ -52,26 +52,23 @@ int main(int argc, char *argv[]) {
         std::cerr << "File " << am_path << " not be recognised." << std::endl;
         exit(-1);
     }
-
-    std::cerr << "debug@main: #1 am_type = " << am_type << std::endl;
+    // std::cerr << "debug@main: #1 am_type = " << am_type << std::endl;
 
     if (am_type == 1) {
         PDA pda;
         int err = 0;
         err = read(am_file, pda);
-        std::cerr << "debug@main: #2 read err = " << err << std::endl;
+        // std::cerr << "debug@main: #2 read err = " << err << std::endl;
         if (err != 0) {
             std::cerr << "syntax error" << std::endl;
             exit(1);
         }
 
-
         PDA_runner runner(&pda);
         err = runner.set_input(input);
         if (err != 0)
             exit(-1);
-
-        std::cerr << "debug@main: #3 set_input done" << std::endl;
+        // std::cerr << "debug@main: #3 set_input done" << std::endl;
 
         bool accept = false;
         err = 1;
@@ -85,12 +82,23 @@ int main(int argc, char *argv[]) {
                 runner.print();
             if (err == 2)
                 accept = runner.if_final();
-            std::cerr << "debug@main: #4 step" << std::endl;
+            // std::cerr << "debug@main: #4 step err = " << err << std::endl;
+            // std::cerr << "debug@main: #4 step err = " << err << " if_final = " << runner.if_final() << std::endl;
         }
         std::cerr << (accept ? "true" : "false") << std::endl;
-        std::cout << (accept ? "true" : "false") << std::endl;
     }
+
     if (am_type == 2) {
+        TM tm;
+        int err = 0;
+        err = read(am_file, tm);
+        if (err != 0) {
+            std::cerr << "syntax error" << std::endl;
+            exit(1);
+        }
+
+        TM_runner runner(&tm);
+        err = runner.set_tape(input);
     }
 
 

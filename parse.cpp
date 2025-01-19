@@ -36,7 +36,7 @@ int read(std::ifstream &file, PDA &p) {
     std::string line;
     p.clear();
     while (getline(file, line)) {
-        std::cerr << "debug@read: line = | " << line << std::endl;
+        // std::cerr << "debug@read: line = | " << line << std::endl;
         if (line.empty() || line[0] == ';')
             continue;
         if (line[0] == '#') {
